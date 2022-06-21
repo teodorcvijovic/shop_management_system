@@ -1,3 +1,4 @@
+import json
 from functools import wraps
 
 from flask import Flask, request, Response, jsonify
@@ -23,32 +24,35 @@ def register():
     surname = request.json.get("surname", "")
     isCustomer = request.json.get("isCustomer", "")
 
-    if len(email) == 0:
-        return Response("Field email is missing.", status=400)
-    if len(password) == 0:
-        return Response("Field password is missing.", status=400)
     if len(forename) == 0:
-        return Response("Field forename is missing.", status=400)
+        return Response(json.dumps({'message': "Field forename is missing."}), status=400)
     if len(surname) == 0:
-        return Response("Field surname is missing.", status=400)
+        return Response(json.dumps({'message': "Field surname is missing."}), status=400)
+    if len(email) == 0:
+        return Response(json.dumps({'message': "Field email is missing."}), status=400)
+    if len(password) == 0:
+        return Response(json.dumps({'message': "Field password is missing."}), status=400)
     if isCustomer == "":
-        return Response("Field isCustomer is missing.", status=400)
+        return Response(json.dumps({'message': "Field isCustomer is missing."}), status=400)
 
     # email check
-    emailIsValid = parseaddr(email)
-    if len(emailIsValid[1]) == 0:
-        return Response("Invalid email.", status=400)
+    # emailIsValid = parseaddr(email)
+    # if len(emailIsValid[1]) == 0:
+    #     return Response(json.dumps({'message': "Invalid email."}), status=400)
+    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    if not re.fullmatch(regex, email):
+        return Response(json.dumps({'message': "Invalid email."}), status=400)
 
     # password check
     if len(password) < 8 or not re.search(r'\d', password) \
             or not re.search(r'[A-Z]', password) \
             or not re.search(r'[a-z]', password):
-        return Response("Invalid password.", status=400)
+        return Response(json.dumps({'message': "Invalid password."}), status=400)
 
     # check if user is already registered
     user = User.query.filter(User.email == email).first()
     if user:
-        return Response("Email already exists.", status=400)
+        return Response(json.dumps({'message': "Email already exists."}), status=400)
 
     user = User(email=email, password=password, forename=forename, surname=surname)
     db.session.add(user)
@@ -61,7 +65,7 @@ def register():
     db.session.add(userRole)
     db.session.commit()
 
-    return Response("User is successfully registered.", status=200)
+    return Response(json.dumps({'message': ""}), status=200)
 
 
 @app.route("/login", methods=["POST"])
@@ -70,24 +74,25 @@ def login():
     password = request.json.get("password", "")
 
     if len(email) == 0:
-        return Response("Field email is missing.", status=400)
+        return Response(json.dumps({'message': "Field email is missing."}), status=400)
     if len(password) == 0:
-        return Response("Field password is missing.", status=400)
+        return Response(json.dumps({'message': "Field password is missing."}), status=400)
 
     # email check
-    emailIsValid = parseaddr(email)
-    if len(emailIsValid[1]) == 0:
-        return Response("Invalid email.", status=400)
+    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    if not re.fullmatch(regex, email):
+        return Response(json.dumps({'message': "Invalid email."}), status=400)
 
     # is password valid
     user = User.query.filter(and_(User.email == email, User.password == password)).first()
     if not user:
-        return Response("Invalid credentials.", status=400)
+        return Response(json.dumps({'message': "Invalid credentials."}), status=400)
 
     additionalClaims = {
         "forename": user.forename,
         "surname": user.surname,
-        "roles": [str(role) for role in user.roles]  # TODO: how to specify roles in jwt tokens?
+        "roles": str(user.roles[0]),
+        #"roles": [str(role) for role in user.roles]  # TODO: how to specify roles in jwt tokens?
     }
 
     accessToken = create_access_token(identity=user.email, additional_claims=additionalClaims)
@@ -108,7 +113,8 @@ def refresh():
         "roles": refreshClaims["roles"]
     }
 
-    return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=200)
+    # return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=200)
+    return jsonify(accessToken=create_access_token(identity=identity, additional_claims=additionalClaims)), 200
 
 
 # role check decorator
@@ -127,29 +133,30 @@ def roleCheck(role):
 
     return innerRoleCheck
 
+
 @app.route("/delete", methods=["POST"])
 @roleCheck(role='admin')
 def delete():
     email = request.json.get("email", "")
 
     if len(email) == 0:
-        return Response("Field email is missing.", status=400)
+        return Response(json.dumps({'message': "Field email is missing."}), status=400)
 
     # email check
-    emailIsValid = parseaddr(email)
-    if len(emailIsValid[1]) == 0:
-        return Response("Invalid email.", status=400)
+    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    if not re.fullmatch(regex, email):
+        return Response(json.dumps({'message': "Invalid email."}), status=400)
 
     # check if user exists
     user = User.query.filter(User.email == email).first()
     if not user:
-        return Response("Unknown user.", status=400)
+        return Response(json.dumps({'message': "Unknown user."}), status=400)
 
     # delete the user
     db.session.delete(user)
     db.session.commit()
 
-    return Response("User is successfully deleted.", status=200)
+    return Response(json.dumps({'message': ""}), status=200)
 
 
 if __name__ == "__main__":

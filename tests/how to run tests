@@ -1,0 +1,5 @@
+# Terminal command to test authentication
+
+python ./tests/main.py --type authentication --authentication-address http://127.0.0.1:5002 --jwt-secret "JWT_SECRET_KEY" --roles-field "roles" --administrator-role "admin" --customer-role "customer" --warehouse-role "salesmen"
+
+#
