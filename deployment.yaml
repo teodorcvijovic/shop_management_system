@@ -6,10 +6,19 @@ services:
     ports:
       - 8080:8080
 
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
+  # AUTHENTICATION SUBSYSTEM
+
   authenticationDatabase:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - 3306:3306
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"] # we ping the database to check is it initialized
       timeout: 10s
@@ -31,3 +40,55 @@ services:
       - authenticationDBMigration
     ports:
       - 5002:5002
+
+  # SHOP SUBSYSTEM
+
+  shopDatabase:
+    image:
+      mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - 3307:3306
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ] # we ping the database to check is it initialized
+      timeout: 10s
+      retries: 20
+
+  shopDBMigration:
+    image: shopdbmigration
+    environment:
+      - DATABASE_URL=shopDatabase
+    depends_on:
+      shopDatabase:
+        condition: service_healthy
+
+  buyer:
+    image: buyer
+    environment:
+      - DATABASE_URL=shopDatabase
+    ports:
+      - 5003:5002
+    depends_on:
+      - shopDBMigration
+
+  admin:
+    image: admin
+    environment:
+      - DATABASE_URL=shopDatabase
+    ports:
+      - 5004:5002
+    depends_on:
+      - shopDBMigration
+
+  warehouse:
+    image: warehouse
+    ports:
+      - 5005:5002
+
+  daemon:
+    image: daemon
+    environment:
+      - DATABASE_URL=shopDatabase
+    depends_on:
+      - shopDBMigration

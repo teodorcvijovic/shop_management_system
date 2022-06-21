@@ -4,7 +4,6 @@ from functools import wraps
 from flask import Flask, request, Response, jsonify
 from configuration import Configuration
 from models import *
-from email.utils import parseaddr
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, \
     get_jwt_identity, verify_jwt_in_request
 from sqlalchemy import and_
