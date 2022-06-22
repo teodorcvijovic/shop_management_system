@@ -47,8 +47,9 @@ class Order(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     price = db.Column(db.Float, nullable=False)
-    successful = db.Column(db.Boolean, nullable=False)  # status: SUCCESSFUL or ON WAITING
+    pending = db.Column(db.Boolean, nullable=False)  # status: SUCCESSFUL or PENDING
     date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now())
+    customer_email = db.Column(db.String(256), nullable=False)
 
     products = db.relationship("Product", secondary=IsOrdered.__table__, back_populates="orders")
 

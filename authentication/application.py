@@ -91,7 +91,7 @@ def login():
         "forename": user.forename,
         "surname": user.surname,
         "roles": str(user.roles[0]),
-        #"roles": [str(role) for role in user.roles]  # TODO: how to specify roles in jwt tokens?
+        "email": user.email
     }
 
     accessToken = create_access_token(identity=user.email, additional_claims=additionalClaims)
@@ -109,7 +109,8 @@ def refresh():
     additionalClaims = {
         "forename": refreshClaims["forename"],
         "surname": refreshClaims["surname"],
-        "roles": refreshClaims["roles"]
+        "roles": refreshClaims["roles"],
+        "email": refreshClaims["email"]
     }
 
     # return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=200)

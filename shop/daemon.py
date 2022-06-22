@@ -77,7 +77,48 @@ with app.app_context() as context:
                         product.quantity += quantity
                         db.session.commit()
 
-                        # TODO: check orders that are ON WAITING
+                        # TODO: check PENDING orders
+                        orders = Order.query.filter(Order.pending == True)\
+                                            .join(IsOrdered)\
+                                            .join(Product)\
+                                            .filter(Product.name == product.name)\
+                                            .filter(IsOrdered.requested - IsOrdered.received > 0)\
+                                            .group_by(Order.id) \
+                                            .order_by(Order.date) \
+                                            .all()
+
+                        for order in orders:
+                            pendingProducts = IsOrdered.query.filter(IsOrdered.id == order.id)\
+                                                             .join(Product)\
+                                                             .filter(Product.name == product.name) \
+                                                             .filter(IsOrdered.requested - IsOrdered.received > 0)\
+                                                             .all()
+
+                            productIdx = 0
+                            while productIdx < len(pendingProducts):
+                                leftToReceive = pendingProducts[productIdx].requested - pendingProducts[productIdx].received
+                                if leftToReceive <= product.quantity:
+                                    pendingProducts[productIdx].received += leftToReceive
+                                    product.quantity -= leftToReceive
+                                else:
+                                    pendingProducts[productIdx].received += product.quantity
+                                    product.quantity = 0
+                                    break
+                                db.session.commit()
+                                productIdx += 1
+
+                            if productIdx == len(pendingProducts):
+                                # we need to check if the order is still pending
+                                pendingProducts = IsOrdered.query.filter(IsOrdered.id == order.id) \
+                                        .filter(IsOrdered.requested - IsOrdered.received > 0) \
+                                        .all()
+
+                                if len(pendingProducts) == 0:
+                                    order.pending = False
+                                    db.session.commit()
+
+
+
 
 
 
