@@ -1,20 +1,17 @@
 import json
 from functools import wraps
 
-import bdb
 from flask import Flask, request, Response, jsonify
 from configuration import Configuration
 from models import *
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, \
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt, \
     get_jwt_identity, verify_jwt_in_request
 from sqlalchemy import and_
-import re
 
 app = Flask(__name__)
 app.config.from_object(Configuration)
 
 jwt = JWTManager(app)
-
 
 # role check decorator
 def roleCheck(role):
@@ -135,6 +132,7 @@ def order():
     verify_jwt_in_request()  # TODO: do we need this if we had a jwt decorator
     userClaims = get_jwt()
     email = userClaims['email']
+    # email = 'admin@admin.com' # for testing
 
     myOrder = Order(price=totalPrice, customer_email=email, pending=pending)
     db.session.add(myOrder)
@@ -155,7 +153,39 @@ def order():
 
     return Response(json.dumps({'id': myOrder.id}), status=200)
 
+@app.route("/status", methods=["GET"])
+@roleCheck(role='customer')
+def status():
+    verify_jwt_in_request()  # TODO: do we need this if we had a jwt decorator
+    userClaims = get_jwt()
+    email = userClaims['email']
+    # email = 'admin@admin.com'  # for testing
+
+    orders = Order.query.filter(Order.customer_email == email)
+
+    resultJSON = {
+        'orders': [
+            {
+                'products': [
+                    {
+                        'categories': [cat.name for cat in product.categories],
+                        'name': product.name,
+                        'price': product.price,
+                        'received': IsOrdered.query.filter(and_(IsOrdered.productId == product.id, IsOrdered.orderId == order.id)).first().received,
+                        'requested': IsOrdered.query.filter(and_(IsOrdered.productId == product.id, IsOrdered.orderId == order.id)).first().requested,
+                    }
+                    for product in Product.query.join(IsOrdered).filter(IsOrdered.orderId == order.id).all()
+                ],
+                'price': order.price,
+                'status': 'COMPLETE' if not order.pending else 'PENDING',
+                'timestamp': order.date.strftime('%Y-%m-%dT%H:%M:%SZ')
+            }
+            for order in orders
+        ]
+    }
+
+    return Response(json.dumps(resultJSON), status=200)
 
 if __name__ == "__main__":
     db.init_app(app)
-    app.run(debug=True, host="0.0.0.0", port=5002)
+    app.run(debug=True, host="0.0.0.0", port=5003)

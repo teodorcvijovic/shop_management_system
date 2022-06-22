@@ -36,4 +36,5 @@ with app.app_context() as context:
     db.session.commit()
     db.session.add(HasCategory(id=2, productId=prod.id, categoryId=cat2.id))
     db.session.commit()
+    #
 
