@@ -41,7 +41,7 @@ def update():
 
     # file isn't passed
     if not file:
-        return Response(json.dumps({'message': "Field file missing."}), status=400)
+        return Response(json.dumps({'message': "Field file is missing."}), status=400)
 
     content = file.stream.read().decode("utf-8")
     stream = io.StringIO(content)
@@ -52,21 +52,27 @@ def update():
 
     for row in reader:
         if len(row) == 0:
-            return Response(json.dumps({'message': "Incorrect number of values on line" + str(rowCnt) + "."}), status=400)
+            return Response(json.dumps({'message': "Incorrect number of values on line " + str(rowCnt) + "."}), status=400)
+
+        if len(row) < 4:
+            return Response(json.dumps({'message': "Incorrect number of values on line " + str(rowCnt) + "."}), status=400)
 
         categoryNames = row[0]
         productName = row[1]
         quantity = row[2]
         price = row[3]
 
-        if len(categoryNames) == 0 or len(productName) == 0 or len(quantity) == 0 or len(price) == 0:
-            return Response(json.dumps({'message': "Incorrect number of values on line" + str(rowCnt) + "."}), status=400)
+        try:
+            if int(quantity) <= 0:
+                return Response(json.dumps({'message': "Incorrect quantity on line " + str(rowCnt) + "."}), status=400)
+        except ValueError:
+                return Response(json.dumps({'message': "Incorrect quantity on line " + str(rowCnt) + "."}), status=400)
 
-        if int(quantity) <= 0:
-            return Response(json.dumps({'message': "Incorrect quantity on line" + str(rowCnt) + "."}), status=400)
-
-        if float(price) <= 0:
-            return Response(json.dumps({'message': "Incorrect price on line" + str(rowCnt) + "."}), status=400)
+        try:
+            if float(price) <= 0:
+                return Response(json.dumps({'message': "Incorrect price on line " + str(rowCnt) + "."}), status=400)
+        except ValueError:
+            return Response(json.dumps({'message': "Incorrect price on line " + str(rowCnt) + "."}), status=400)
 
         products.append(row)
 
@@ -82,4 +88,4 @@ def update():
 
 if __name__ == "__main__":
     db.init_app(app)
-    app.run(debug=True, host="0.0.0.0", port=5002)
+    app.run(debug=True, host="0.0.0.0", port=5001)

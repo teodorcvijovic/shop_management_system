@@ -19,6 +19,7 @@ class IsOrdered(db.Model):
     orderId = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False)
     requested = db.Column(db.Integer, nullable=False)
     received = db.Column(db.Integer, nullable=False)
+    productPrice = db.Column(db.Float, nullable=False)
 
 class Category(db.Model):
     __tablename__ = 'categories'

@@ -21,20 +21,20 @@ with app.app_context() as context:
     upgrade()
 
     # for testing
-    cat1 = Category(id=1, name='mobile')
-    db.session.add(cat1)
-    db.session.commit()
-    cat2 = Category(id=2, name='apple')
-    db.session.add(cat2)
-    db.session.commit()
-
-    prod = Product(id=1, name='iphone', quantity=2, price=500.0)
-    db.session.add(prod)
-    db.session.commit()
-
-    db.session.add(HasCategory(id=1, productId=prod.id, categoryId=cat1.id))
-    db.session.commit()
-    db.session.add(HasCategory(id=2, productId=prod.id, categoryId=cat2.id))
-    db.session.commit()
+    # cat1 = Category(id=1, name='mobile')
+    # db.session.add(cat1)
+    # db.session.commit()
+    # cat2 = Category(id=2, name='apple')
+    # db.session.add(cat2)
+    # db.session.commit()
+    #
+    # prod = Product(id=1, name='iphone', quantity=2, price=500.0)
+    # db.session.add(prod)
+    # db.session.commit()
+    #
+    # db.session.add(HasCategory(id=1, productId=prod.id, categoryId=cat1.id))
+    # db.session.commit()
+    # db.session.add(HasCategory(id=2, productId=prod.id, categoryId=cat2.id))
+    # db.session.commit()
     #
 

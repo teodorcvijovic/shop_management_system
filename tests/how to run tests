@@ -2,4 +2,17 @@
 
 python ./tests/main.py --type authentication --authentication-address http://127.0.0.1:5002 --jwt-secret "JWT_SECRET_KEY" --roles-field "roles" --administrator-role "admin" --customer-role "customer" --warehouse-role "salesmen"
 
-#
+# Level 0 tests
+
+python main.py --type level0 --with-authentication --authentication-address http://127.0.0.1:5002 --customer-address http://127.0.0.1:5003 --warehouse-address http://127.0.0.1:5001
+
+# ... same for levels 1 and 2
+
+python main.py --type level1 --with-authentication --authentication-address http://127.0.0.1:5002 --customer-address http://127.0.0.1:5003 --warehouse-address http://127.0.0.1:5001
+python main.py --type level2 --with-authentication --authentication-address http://127.0.0.1:5002 --customer-address http://127.0.0.1:5003 --warehouse-address http://127.0.0.1:5001
+
+# Level 3 tests
+
+python main.py --type level3 --with-authentication --authentication-address http://127.0.0.1:5002 --customer-address http://127.0.0.1:5003 --warehouse-address http://127.0.0.1:5001 --administrator-address http://127.0.0.1:5004
+
+

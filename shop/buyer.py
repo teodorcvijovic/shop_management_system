@@ -104,15 +104,19 @@ def order():
         if quantity == '':
             return Response(json.dumps({'message': "Product quantity is missing for request number " + str(i) + "."}), status=400)
 
-        productId = int(productId)
-        quantity = int(quantity)
+        try:
+            productId = int(productId)
+        except ValueError:
+            return Response(json.dumps({'message': "Invalid product id for request number " + str(i) + "."}),status=400)
+        try:
+            quantity = int(quantity)
+        except ValueError:
+            return Response(json.dumps({'message': "Invalid product quantity for request number " + str(i) + "."}),status=400)
 
         if productId <= 0:
-            return Response(json.dumps({'message': "Invalid product id for request number " + str(i) + "."}),
-                            status=400)
+            return Response(json.dumps({'message': "Invalid product id for request number " + str(i) + "."}),status=400)
         if quantity <= 0:
-            return Response(json.dumps({'message': "Invalid product quantity for request number " + str(i) + "."}),
-                            status=400)
+            return Response(json.dumps({'message': "Invalid product quantity for request number " + str(i) + "."}),status=400)
 
         product = Product.query.filter(Product.id == productId).all()
 
@@ -124,7 +128,7 @@ def order():
         # request is valid
         products.append(product)
         requestedQuantities.append(quantity)
-        totalPrice += product.price
+        totalPrice += product.price * quantity
         if product.quantity < quantity:
             pending = True
 
@@ -147,7 +151,7 @@ def order():
             product.quantity = 0
         db.session.commit()
 
-        isOrdered = IsOrdered(productId=product.id, orderId=myOrder.id, requested=requestedQuantity, received=received)
+        isOrdered = IsOrdered(productId=product.id, orderId=myOrder.id, requested=requestedQuantity, received=received, productPrice=product.price)
         db.session.add(isOrdered)
         db.session.commit()
 
@@ -170,7 +174,7 @@ def status():
                     {
                         'categories': [cat.name for cat in product.categories],
                         'name': product.name,
-                        'price': product.price,
+                        'price': IsOrdered.query.filter(and_(IsOrdered.productId == product.id, IsOrdered.orderId == order.id)).first().productPrice,
                         'received': IsOrdered.query.filter(and_(IsOrdered.productId == product.id, IsOrdered.orderId == order.id)).first().received,
                         'requested': IsOrdered.query.filter(and_(IsOrdered.productId == product.id, IsOrdered.orderId == order.id)).first().requested,
                     }
