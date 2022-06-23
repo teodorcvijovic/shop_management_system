@@ -44,15 +44,19 @@ def productStatistics():
             'name': product.name
         }
 
+        hasAnySale = IsOrdered.query.filter(IsOrdered.productId == product.id).all()
+        if len(hasAnySale) == 0:
+            continue
+
         sold = 0
         for order in IsOrdered.query.filter(IsOrdered.productId == product.id):
-            sold += order.received
+            sold += order.requested
         stat['sold'] = sold
 
-        requested = 0
+        received = 0
         for order in IsOrdered.query.filter(IsOrdered.productId == product.id):
-            requested += order.requested
-        stat['waiting'] = requested - sold
+            received += order.received
+        stat['waiting'] = sold - received
 
         resultJSON['statistics'].append(stat)
 
@@ -64,11 +68,11 @@ def categoryStatistics():
 
     resultJSON = {
         'statistics': [
-            cat.name for cat in Category.query.join(HasCategory)
-                                              .join(Product)
-                                              .join(IsOrdered)
+            cat.name for cat in Category.query.outerjoin(HasCategory)
+                                              .outerjoin(Product)
+                                              .outerjoin(IsOrdered)
                                               .group_by(Category.id)
-                                              .order_by(func.sum(IsOrdered.received).desc())
+                                              .order_by(func.sum(IsOrdered.requested if IsOrdered.requested else 0).desc())
                                               .order_by(Category.name)
                                               .all()
         ]

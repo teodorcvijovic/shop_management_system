@@ -76,8 +76,6 @@ if __name__ == '__main__':
                                 isValid = False
                                 break
 
-
-                        print(isValid)
                         if isValid:
                             # product is valid
                             product.price = (product.quantity * product.price + quantity * price) / (product.quantity + quantity)
@@ -107,11 +105,12 @@ if __name__ == '__main__':
                                     if leftToReceive <= product.quantity:
                                         pendingProducts[productIdx].received += leftToReceive
                                         product.quantity -= leftToReceive
+                                        db.session.commit()
                                     else:
                                         pendingProducts[productIdx].received += product.quantity
                                         product.quantity = 0
+                                        db.session.commit()
                                         break
-                                    db.session.commit()
                                     productIdx += 1
 
                                 if productIdx == len(pendingProducts):
