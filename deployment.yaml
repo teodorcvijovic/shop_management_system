@@ -47,6 +47,8 @@ services:
     image: authentication
     environment:
       - DATABASE_URL=authenticationDatabase
+    networks:
+      - authnet
     depends_on:
       - authenticationDBMigration
     ports:
