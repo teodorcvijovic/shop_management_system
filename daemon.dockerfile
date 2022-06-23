@@ -4,7 +4,7 @@ RUN mkdir -p /opt/src/shop
 WORKDIR /opt/src/shop
 
 COPY shop/daemon.py ./application.py
-COPY shop/configuration.py ./configuration.py
+COPY shop/configurationDaemon.py ./configurationDaemon.py
 COPY shop/models.py ./models.py
 COPY shop/requirements.txt ./requirements.txt
 

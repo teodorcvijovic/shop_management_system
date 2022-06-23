@@ -5,11 +5,15 @@ services:
     image: adminer
     ports:
       - 8080:8080
+    networks:
+      - adminernet
 
   redis:
     image: redis
     ports:
       - 6379:6379
+    networks:
+      - redisnet
 
   # AUTHENTICATION SUBSYSTEM
 
@@ -19,6 +23,11 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     ports:
       - 3306:3306
+    networks:
+      - authnet
+      - adminernet
+    volumes:
+      - authdbvolume:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"] # we ping the database to check is it initialized
       timeout: 10s
@@ -28,6 +37,8 @@ services:
     image: authenticationdbmigration
     environment:
       - DATABASE_URL=authenticationDatabase
+    networks:
+      - authnet
     depends_on:
       authenticationDatabase:
         condition: service_healthy
@@ -50,6 +61,13 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     ports:
       - 3307:3306
+    networks:
+      - buyernet
+      - adminnet
+      - daemonnet
+      - adminernet
+    volumes:
+      - shopdbvolume:/var/lib/mysql
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ] # we ping the database to check is it initialized
       timeout: 10s
@@ -59,6 +77,10 @@ services:
     image: shopdbmigration
     environment:
       - DATABASE_URL=shopDatabase
+    networks:
+      - buyernet
+      - adminnet
+      - daemonnet
     depends_on:
       shopDatabase:
         condition: service_healthy
@@ -68,7 +90,9 @@ services:
     environment:
       - DATABASE_URL=shopDatabase
     ports:
-      - 5003:5002
+      - 5003:5003
+    networks:
+      - buyernet
     depends_on:
       - shopDBMigration
 
@@ -77,18 +101,53 @@ services:
     environment:
       - DATABASE_URL=shopDatabase
     ports:
-      - 5004:5002
+      - 5004:5004
+    networks:
+      - adminnet
     depends_on:
       - shopDBMigration
 
   warehouse:
     image: warehouse
     ports:
-      - 5005:5002
+      - 5001:5001
+    environment:
+      - REDIS_HOST=redis
+    networks:
+      - warehousenet
+      - redisnet
 
   daemon:
     image: daemon
     environment:
       - DATABASE_URL=shopDatabase
+      - REDIS_HOST=redis
+    networks:
+      - daemonnet
+      - redisnet
     depends_on:
       - shopDBMigration
+
+
+networks:
+  authnet:
+
+  buyernet:
+
+  adminnet:
+
+  warehousenet:
+
+  daemonnet:
+
+  adminernet:
+
+  redisnet:
+
+
+# virtual disks for containers
+volumes:
+  authdbvolume:
+
+  shopdbvolume:
+

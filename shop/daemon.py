@@ -3,7 +3,7 @@ import json
 from flask import Flask
 from redis import Redis
 
-from configuration import Configuration
+from configurationDaemon import Configuration
 from models import *
 from sqlalchemy import and_
 
