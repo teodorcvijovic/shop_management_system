@@ -41,9 +41,6 @@ services:
       - DATABASE_URL=authenticationDatabase
     networks:
       - authnet
-    depends_on:
-      authenticationDatabase:
-        condition: service_healthy
 
   authentication:
     image: authentication
@@ -51,8 +48,6 @@ services:
       - DATABASE_URL=authenticationDatabase
     networks:
       - authnet
-    depends_on:
-      - authenticationDBMigration
     ports:
       - 5002:5002
 
@@ -85,9 +80,6 @@ services:
       - buyernet
       - adminnet
       - daemonnet
-    depends_on:
-      shopDatabase:
-        condition: service_healthy
 
   buyer:
     image: buyer
@@ -97,8 +89,8 @@ services:
       - 5003:5003
     networks:
       - buyernet
-    depends_on:
-      - shopDBMigration
+    deploy:
+      replicas: 3
 
   admin:
     image: admin
@@ -108,8 +100,6 @@ services:
       - 5004:5004
     networks:
       - adminnet
-    depends_on:
-      - shopDBMigration
 
   warehouse:
     image: warehouse
@@ -120,6 +110,8 @@ services:
     networks:
       - warehousenet
       - redisnetwarehouse
+    deploy:
+      replicas: 3
 
   daemon:
     image: daemon
@@ -129,28 +121,35 @@ services:
     networks:
       - daemonnet
       - redisnetdaemon
-    depends_on:
-      - shopDBMigration
 
 
 networks:
   authnet:
+    driver: overlay
 
   buyernet:
+    driver: overlay
 
   adminnet:
+    driver: overlay
 
   warehousenet:
+    driver: overlay
 
   daemonnet:
+    driver: overlay
 
   adminernetauth:
+    driver: overlay
 
   adminernetshop:
+    driver: overlay
 
   redisnetwarehouse:
+    driver: overlay
 
   redisnetdaemon:
+    driver: overlay
 
 # virtual disks for containers
 volumes:
