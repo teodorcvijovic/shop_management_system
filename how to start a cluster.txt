@@ -12,7 +12,7 @@ Docker Swarm:
 	2.1 docker swarm init --advertise-addr 127.0.0.1
 	2.2 docker stack deploy --compose-file stack.yaml myappstack
 
-3. kada zelimo da zaustavimo sve: docker swarm leave --force
+3. kada zelimo da zaustavimo sve: docker stack rm myappstack
 
 
 
