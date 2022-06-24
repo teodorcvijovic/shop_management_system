@@ -16,3 +16,6 @@ python main.py --type level2 --with-authentication --authentication-address http
 python main.py --type level3 --with-authentication --authentication-address http://127.0.0.1:5002 --customer-address http://127.0.0.1:5003 --warehouse-address http://127.0.0.1:5001 --administrator-address http://127.0.0.1:5004
 
 
+# Run all tests
+
+python main.py --type all --with-authentication --authentication-address http://127.0.0.1:5002 --jwt-secret "JWT_SECRET_KEY" --roles-field "roles" --administrator-role "admin" --customer-role "customer" --warehouse-role "salesmen" --customer-address http://127.0.0.1:5003 --warehouse-address http://127.0.0.1:5001 --administrator-address http://127.0.0.1:5004
